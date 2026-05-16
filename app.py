@@ -2,8 +2,31 @@ from flask import Flask, redirect, render_template, request
 import sqlite3
 
 app = Flask(__name__)
+def init_db():
+    conn = sqlite3.connect('/data/database.db')
+    cursor = conn.cursor()
 
-conn = sqlite3.connect('todo.db', check_same_thread=False)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tasks (
+            tid INTEGER PRIMARY KEY AUTOINCREMENT,
+            task TEXT NOT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS done (
+            did INTEGER PRIMARY KEY AUTOINCREMENT,
+            task TEXT NOT NULL,
+            task_id INTEGER
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+init_db()
+
+conn = sqlite3.connect('/data/database.db', check_same_thread=False)
 cursor = conn.cursor()
 
 
@@ -44,7 +67,7 @@ def deleteCompletedTask(id):
 
 @app.route('/')
 def home():
-    conn = sqlite3.connect('todo.db')
+    conn = sqlite3.connect('/data/database.db')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM tasks")
     row = cursor.fetchall() 
@@ -54,5 +77,5 @@ def home():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080)
 
